@@ -81,7 +81,7 @@ Y = yes, P = partial, N = no (evidence found), ? = unknown.
 | H3 | Players trust deterministic, cited findings more than AI-written explanations | No preference, or AI preferred for convenience |
 | H4 | A goal-anchored plan with re-measurement would change behavior in the next runs | Players say they'd read once and not return |
 | H5 | Players will upload/connect WCL logs for this | Majority don't log M+ and won't start |
-| H6 | Assassination-only is enough to recruit a beta cohort of 15–30 users | Recruiting fails within 2 weeks |
+| H6 | Assassination-only is enough to recruit a beta cohort of 8–15 users | Recruiting fails within 2 weeks |
 | H7 | Players would pay | (Not tested — monetization may be prohibited; ask only about value) |
 
 ### 5.2 Recruiting criteria (15–20 players)

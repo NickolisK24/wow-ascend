@@ -29,15 +29,16 @@
 | T-WCL-06 | Boss pull boundaries | probe metadata | `dungeonPulls` with `encounterID ≠ 0` matches the dungeon's boss count | – |
 | T-WCL-07 | Unlisted report via the client endpoint, with and without `allowUnlisted` | manual query | Record behavior | – |
 | T-WCL-08 | Archived report behavior | manual query on an old report | Record the `archiveStatus` fields | – |
-| T-CALC-01 | Hand-compute AR-01, AR-03, AR-10 and AR-14 on 3 reports; compare with WCL's own cast and uptime tables | spreadsheet + WCL UI | Uptime within ±1 pp; cast counts equal | – |
-| T-CAL-01 | Calibration cohort for AR-01 and AR-03: ≥30 reports per (main boss cell × hero tree) | script (Stage 0 PoC) | Distributions recorded; thresholds meet ANALYSIS_ENGINE §10 | – |
+| T-VER-01 | Verify in live data plus ≥2 current sources: Assassination spec ID; Deathmark/Kingsbane spell IDs, cooldowns and whether they are talents; dual-lethal poison talent; Rupture/Garrote/poison aura IDs; defensive cooldowns (Cloak, Evasion, Feint, Crimson Vial) | probe output + guides | Each value recorded in `gamedata/` with its source; rules depending on an unverified value stay disabled | – |
+| T-CALC-01 | Hand-compute AR-01, AR-03, AR-04, AR-09, AR-10 and AR-14 on 3 reports; compare with WCL's own cast, debuff and interrupt tables | spreadsheet + WCL UI | Debuff active time within ±1%; cast and interrupt counts equal | – |
+| T-CAL-01 | Calibration cohort for AR-01, AR-03 and AR-04: ≥30 per cell (cell = boss × hero tree × key band; ANALYSIS_ENGINE §10) | throwaway prototype in `research/` | Distributions recorded; thresholds meet ANALYSIS_ENGINE §10 | – |
 | T-LEGAL-01 | Read the current Blizzard Developer API Terms in full | manual | Memo answering B1–B7 | – |
 | T-LEGAL-02 | Read the RPG Logs API ToS; email for approval, asking explicitly about storing derived metrics | manual | Written reply | – |
 | T-UX-01 | 15–20 interviews | script in COMPETITIVE_LANDSCAPE §5 | Synthesis against H1–H7 | – |
 
 ## 3. Gate mapping
 - **Gate 1** requires T-BN-01..04, T-BN-06 and T-WCL-01..06.
-- **Gate 2** requires T-CALC-01 and T-CAL-01, with ≥3 rules qualifying. AR-01 and AR-03 as suggestions, plus ≥1 additional defensible insight, which could be AR-10 if it is judged meaningful.
+- **Gate 2** requires T-VER-01, T-CALC-01 and T-CAL-01, and **≥3 qualifying insights, of which ≥2 are calibrated suggestions** (from AR-01, AR-03, AR-04). The rest may be observations (AR-09, AR-10, AR-14) that pass T-CALC-01. AR-03 and AR-04 count as separate rules.
 - **Gate 3** requires T-LEGAL-01 and T-LEGAL-02.
 - **Gate 4** requires T-UX-01.
 

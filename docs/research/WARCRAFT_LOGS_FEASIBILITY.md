@@ -12,7 +12,7 @@
 | Question | Answer | Confidence |
 |---|---|---|
 | Does the WCL API expose the event categories needed for per-player analysis? | **Yes, by schema** | High (schema) |
-| Do Midnight logs still contain those events? | **Very likely** — Blizzard says file logging unchanged; WoWAnalyzer supports patches to 12.1.0; a 2026-11-01 project documents casts/resources/talents in current logs | Medium-High |
+| Do Midnight logs still contain those events? | **Very likely** — the game director is quoted (secondhand) saying file logging is unchanged; WoWAnalyzer supports patches to 12.1.0; a 2026-11-01 project documents casts/resources/talents in current logs | Medium-High |
 | Can a third party legally store and process them commercially? | **Unresolved** — commercial use requires prior approval; caching limited by cache headers (`no-cache, private` observed) | Medium-Low (terms not read) |
 | Can a solo app afford the rate limits? | **Probably at beta scale**, uncertain beyond; new points system in beta since 2026-10-20 | Medium |
 | Has the live sample test been done? | **No — BLOCKED** | – |
@@ -82,8 +82,8 @@ Legend — Evidence quality: **S** = schema-verified data path; **P** = WoWAnaly
 | Finisher CP / energy waste | `cast` with `classResources`; `resourcechange` `waste` | includeResources; resourcechange | % finishers < threshold CP; energy wasted | Resource fields present in Midnight (documented by `WCL-04`, not by us) | Rule disabled until T-WCL-04 confirms | S + P (`FinisherUse`, `EnergyGraph`) + U | Medium | No (pending) |
 | Interrupt contribution | `interrupt` events by player; `cast` of Kick | Interrupts events | counts | Assignments unknown | Fact only | S + U | Low | **Yes (fact)** |
 | Avoidable damage | DamageTaken + curated ability list | DamageTaken events | sum listed abilities | Curated list per season | Not offered | S (data) / curated list absent | High (maintenance) | **No** |
-| Death timing and cause | `death` events; preceding `damage` taken | Deaths, DamageTaken | killing blow + 5 s window | Killing blow identifiable | Show "cause unknown" | S + U | Low-Med | **Yes (fact)** |
-| Defensive availability at death | player `cast` history of defensives | Casts | last use vs verified CD | CDs verified | Omit availability line | S + U | Medium | **Yes (fact)** |
+| Death timing and cause | `death` events; preceding `damage` taken | Deaths, DamageTaken | killing blow + `window_ms` (rule data, D-018) | Killing blow identifiable | Show "cause unknown" | S + U | Low-Med | **Yes (fact)** |
+| Defensive availability at death | player `cast` history of defensives | Casts | last use vs verified CD | CDs verified | Omit availability line | S + U | Medium | **Only after T-VER-01** |
 | Downtime | casts + movement/untargetable info | Casts; no reliable untargetable data | – | Requires encounter context | – | U | High | **No** |
 | Comparison vs similar players | rankings + other reports | `characterRankings`, `fightRankings` (DB points) | percentile of metric in cohort | Cohort large enough; same patch/tree/key band | Show no comparison | S (fields) + U (costs) | High | **No for live**; used **offline** for calibration only |
 
@@ -107,7 +107,7 @@ Legend — Evidence quality: **S** = schema-verified data path; **P** = WoWAnaly
 **What the probe checks:** schema introspection of `ReportFight` (incl. `dungeonPulls`); report metadata; M+ fight detection; player identification; each `EventDataType` independently with pagination and timestamp monotonicity; `rateLimitData` cost per call. It never trusts a field it did not first see in live introspection.
 
 ### 6.1 Sample report study checklist (to execute)
-Retrieve metadata → identify key and boss pulls → identify player/spec/hero tree (from `combatantinfo`) → inspect event categories → verify timestamps within pull bounds → test pagination → check for unpaired debuff events and missing deaths → record limits → sanitize fixtures → compute AR-01/03/09/10/14 by hand and compare to WCL's own tables for the same report (independent cross-check).
+Retrieve metadata → identify key and boss pulls → identify player/spec/hero tree (from `combatantinfo`) → inspect event categories → verify timestamps within pull bounds → test pagination → check for unpaired debuff events and missing deaths → record limits → sanitize fixtures → run T-CALC-01 (rule list in the test plan) and compare to WCL's own tables for the same report (independent cross-check).
 
 ## 7. Conclusion for Gate 1
 Documentary evidence is **strongly favorable** for the data path and **unfavorable-to-unclear** for permissions and scale economics. Gate 1 cannot PASS without the live sample; status **BLOCKED**.

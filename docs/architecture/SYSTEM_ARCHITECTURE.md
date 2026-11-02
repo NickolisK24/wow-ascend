@@ -88,7 +88,7 @@ sequenceDiagram
   participant A as Ascend API
   participant B as Battle.net
   U->>A: GET /auth/login?region=eu
-  A->>A: create pre-auth record {state, (pkce verifier)}, set short-lived cookie
+  A->>A: insert oauth_states row (hashed state, region, PKCE verifier if supported), set short-lived cookie
   A-->>U: 302 oauth.battle.net/authorize?client_id&redirect_uri&scope=openid wow.profile&state
   U->>B: login + consent (Blizzard UI; Ascend never sees password)
   B-->>U: 302 /auth/callback?code&state
@@ -97,7 +97,7 @@ sequenceDiagram
   A->>B: POST /token (code, client secret)
   B-->>A: access_token (~24h, no refresh token expected)
   A->>B: GET /oauth/userinfo ; GET /profile/user/wow
-  A->>A: upsert user (sub, battletag), cache character list in session scope, DISCARD token
+  A->>A: upsert user (sub, battletag), store character list in sessions.data (1 h), DISCARD token
   A-->>U: Set-Cookie: session (HttpOnly, Secure, SameSite=Lax); 302 /characters
 ```
 - **Authorization:** a `current_user` dependency on every non-public route. Repositories require `user_id`. IDOR tests in CI.
@@ -148,7 +148,7 @@ sequenceDiagram
 | POST `/imports/{id}/select` `{fight_id}` | Choose the key | |
 | GET `/analyses/{id}` | Run header, findings, insufficient-evidence list | |
 | GET `/characters/{id}/plan` | Top ≤3 suggestions from the latest analysis | |
-| GET `/characters/{id}/history` | Analyses plus per-metric trends | |
+| GET `/characters/{id}/history` | Analyses plus per-rule trends, split by rule version | |
 | POST `/findings/{id}/feedback` | Wrong / unclear / helpful | |
 | DELETE `/me` | Delete account | |
 | GET `/health` | Liveness, and DB check (`?deep=1`) | Public |

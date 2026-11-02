@@ -10,7 +10,7 @@
 5. **Ownership:** every user-facing row is reachable from exactly one `users.id`. All of it is removed by `ON DELETE CASCADE` from `users`.
 6. Timestamps are `timestamptz` (UTC). IDs are UUIDv7, generated in the app.
 
-## 2. Entity mapping (directive §8.1)
+## 2. Entity mapping (from the project directive)
 
 | Concept | Where it lives | Provenance |
 |---|---|---|
@@ -30,7 +30,7 @@
 | Coaching finding | `findings` | derived |
 | Supporting evidence | `findings.evidence` (JSON array, schema `evidence.v1`) | derived |
 | Player goal | `goals` | user |
-| Improvement history | query over `metric_results` × `analyses` (no table) | derived |
+| Improvement history | query over `findings` (status per rule) + `metric_results` (values) × `analyses`, grouped by `rule_id@rule_version` (no table) | derived |
 | Finding feedback | `finding_feedback` | user |
 
 ## 3. ERD
@@ -46,7 +46,7 @@ erDiagram
   analyses ||--o{ findings : has
   findings ||--o{ finding_feedback : receives
   users ||--o{ finding_feedback : gives
-  jobs }o--|| report_imports : "processes (payload ref)"
+  users ||--o{ jobs : "owns (nullable)"
 ```
 
 ## 4. Schema (PostgreSQL 17)
@@ -56,9 +56,10 @@ CREATE TABLE users (
   id            uuid PRIMARY KEY,
   bnet_sub      text NOT NULL UNIQUE,          -- provider id (PII). Never logged raw.
   battletag     text NOT NULL,                 -- PII; display to owner only
-  region        text NOT NULL CHECK (region IN ('us','eu','kr','tw')),
+  region        text NOT NULL CHECK (region IN ('us','eu','kr','tw')),  -- region of last login; characters carry their own region; switching region re-runs OAuth
   created_at    timestamptz NOT NULL DEFAULT now(),
-  last_login_at timestamptz NOT NULL DEFAULT now()
+  last_login_at timestamptz NOT NULL DEFAULT now(),
+  pending_notices jsonb NOT NULL DEFAULT '[]'   -- shown once, then cleared (e.g. character removed by 30-day check)
 );
 
 CREATE TABLE sessions (
@@ -67,9 +68,19 @@ CREATE TABLE sessions (
   token_sha256 bytea NOT NULL UNIQUE,          -- raw token only in cookie
   created_at   timestamptz NOT NULL DEFAULT now(),
   last_seen_at timestamptz NOT NULL DEFAULT now(),
-  expires_at   timestamptz NOT NULL
+  expires_at   timestamptz NOT NULL,
+  data         jsonb NOT NULL DEFAULT '{}'    -- short-lived cache: account character list (ids, names, realms), cleared after 1 h
 );
 CREATE INDEX ON sessions (user_id);
+
+CREATE TABLE oauth_states (                 -- pre-auth records, single use (AC-AUTH-02)
+  state_sha256  bytea PRIMARY KEY,
+  region        text NOT NULL,
+  pkce_verifier text,                        -- only if PKCE is supported (T-BN-07)
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  expires_at    timestamptz NOT NULL,         -- ~10 min; purged daily
+  used_at       timestamptz                   -- set on callback; reuse rejected
+);
 CREATE INDEX ON sessions (expires_at);
 
 CREATE TABLE characters (
@@ -130,7 +141,7 @@ CREATE TABLE report_imports (
   error_code    text,                          -- machine-readable reason (see ANALYSIS_ENGINE §8)
   requested_at  timestamptz NOT NULL DEFAULT now(),
   completed_at  timestamptz,
-  UNIQUE (character_id, provider, report_code, fight_id)   -- idempotency
+  UNIQUE NULLS NOT DISTINCT (character_id, provider, report_code, fight_id)   -- idempotency, incl. before key selection (PG 15+)
 );
 CREATE INDEX ON report_imports (user_id, requested_at DESC);
 
@@ -152,7 +163,7 @@ CREATE TABLE analyses (
   data_coverage      jsonb NOT NULL,           -- per dataType: requested/returned/pages/anomalies
   superseded_by      uuid REFERENCES analyses(id),
   created_at         timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (import_id, rule_set_version)
+  UNIQUE (import_id, rule_set_version, game_data_version, engine_version)
 );
 
 CREATE TABLE metric_results (
@@ -199,6 +210,7 @@ CREATE TABLE finding_feedback (
 
 CREATE TABLE jobs (
   id          uuid PRIMARY KEY,
+  user_id     uuid REFERENCES users(id) ON DELETE CASCADE,  -- NULL for system jobs
   kind        text NOT NULL,                   -- 'analyze_import' | 'refresh_character' | 'status_check'
   payload     jsonb NOT NULL,                  -- ids only, never tokens
   status      text NOT NULL CHECK (status IN ('queued','running','done','failed')),
@@ -224,7 +236,7 @@ CREATE INDEX ON jobs (status, run_after);
 | Provider tokens | **Not stored** in the MVP | – |
 
 ## 6. Retention implementation
-- **Nightly `status_check` jobs:** characters with `last_status_check_at < now() − 25 days` are checked. A failing character is deleted; cascades remove its snapshots, goals, imports, analyses and findings, and the owner sees a notice on next login.
+- **Nightly `status_check` jobs:** characters with `last_status_check_at < now() − 25 days` are checked. A failing character is deleted (cascades remove its snapshots, goals, imports, analyses and findings), and a notice is appended to `users.pending_notices`, shown on next login.
 - **Analyses:** deleted after 180 days by default (pending W2).
 - **Sessions:** expired rows are purged daily.
 - **Account deletion:** `DELETE FROM users WHERE id = $1`, with cascades.

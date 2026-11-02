@@ -5,16 +5,16 @@
 ## 1. Summary
 | Stage | Hours (est.) | Calendar (at ~17 h/wk) | Hard dependency |
 |---|---|---|---|
-| 0 Research & feasibility (remaining) | 25–35, of which ~15 is interviews | Weeks 1–2, with interviews spread over weeks 1–4 | Credentials, network access |
-| 1 Foundation | 20–25 | Weeks 2–3 | Gate 3 (Blizzard part) not FAIL |
-| 2 Character experience | 15–20 | Weeks 3–4 | Stage 1 |
-| 3 Coaching engine | 35–45 | Weeks 4–7 | **Gates 1 and 2 PASS** |
-| 4 User experience | 15–20 | Weeks 7–8 | Stage 3 |
-| 5 Validation | 15–20 | Weeks 8–9 | Stage 4; ≥8 beta testers |
-| 6 Public beta | 5–10 | Week 10 | Gates 3, 4 and 5 PASS; launch criteria |
-| **Total** | **130–175 h** | **≈ 9–11 weeks** | |
+| 0 Research & feasibility (remaining) | 35–50 (interviews ~15, probes ~5, calibration prototype and runs 10–20, terms and naming 5–10) | Weeks 1–3, with interviews spread over weeks 1–4 | Credentials, network access |
+| 1 Foundation | 20–25 | Weeks 3–4 | Compliance memo (T-LEGAL-01): Blizzard use permitted for a free product |
+| 2 Character experience | 15–20 | Weeks 4–5 | Stage 1 |
+| 3 Coaching engine | 35–45 | Weeks 5–8 | **Gates 1, 2 and 4 PASS; WCL written approval** |
+| 4 User experience | 15–20 | Weeks 8–9 | Stage 3 |
+| 5 Validation | 15–20 | Weeks 9–11 | Stage 4; 8–15 beta testers |
+| 6 Public beta | 5–10 | Week 12 | All five gates PASS; launch criteria |
+| **Total** | **140–190 h** | **≈ 10–12 weeks** | |
 
-**Realism check:** the requested 6–8 weeks is achievable only if Stage 0 interviews run fully in parallel and nothing in Stage 3 needs rework. **The realistic estimate is 9–11 weeks**, which puts the beta around mid-January 2027.
+**Realism check:** the requested 6–8 weeks is achievable only if Stage 0 interviews run fully in parallel and nothing in Stage 3 needs rework. **The realistic estimate is 10–12 weeks**, which puts the beta around late January 2027.
 
 **Season risk:** Patch 12.1.7 is expected around December 2026 (date unconfirmed). Patch 12.2 and Season 3 are announced for winter 2026–27, also without a date. Season 3 replaces the whole dungeon pool and may change Assassination. **Decision point at the end of Stage 3:** launch the beta on Season 2 data, accepting a short shelf life, or hold until Season 3 and recalibrate. The rule-versioning design supports either choice.
 
@@ -32,12 +32,12 @@
 - **Deliverables:**
   - Probe runs: T-BN-01..08 and T-WCL-01..08 (see [FEASIBILITY_TEST_PLAN.md](../quality/FEASIBILITY_TEST_PLAN.md)).
   - Sanitized fixtures committed.
-  - Hand-computed AR-01/AR-03/AR-10 on ≥3 reports, cross-checked against WCL's own tables.
-  - A first calibration pass for AR-01 and AR-03 (≥30 reports per main cell).
+  - T-CALC-01 hand computation on ≥3 reports (rule list in the test plan), cross-checked against WCL's own tables.
+  - A throwaway calibration prototype in `research/` and a first calibration pass for AR-01, AR-03 and AR-04 (cell definition in ANALYSIS_ENGINE §10).
   - Terms read in full (Blizzard and WCL) and the WCL approval email sent.
   - A name decision.
   - 15–20 interviews.
-- **Hours:** 25–35.
+- **Hours:** 35–50.
 - **Milestones:**
   - M0.1 probes green.
   - M0.2 calibration report.
@@ -51,13 +51,13 @@
   - The WCL Terms reply could be slow or negative.
   - The calibration cohort may be too thin.
 - **Exit conditions:**
-  - **Proceed to Stage 3 only if Gates 1 and 2 PASS.**
+  - **Proceed to Stage 3 only if Gates 1, 2 and 4 PASS and WCL has approved the processing in writing.**
   - **Stop or pivot** if Gate 1 FAILs (needed events absent) or Gate 3 FAILs (processing prohibited).
-  - If Gate 4 FAILs (users prefer existing tools), stop or re-scope before building Stage 3.
+  - If Gate 4 FAILs (users prefer existing tools), stop or re-scope instead of building Stage 3.
 
 ### Stage 1: Foundation
 - **Goal:** a deployable skeleton with authentication.
-- **Dependencies:** Stage 0 compliance memo shows Blizzard usage is permitted for a free product.
+- **Dependencies:** Stage 0 compliance memo (T-LEGAL-01) concludes Blizzard API use is permitted for a free product.
 - **Deliverables:**
   - Monorepo (`backend/`, `frontend/`).
   - CI covering lint, types, tests, import-linter, secret scan and audit.
@@ -73,7 +73,7 @@
 - **Milestones:**
   - M1.1 CI green on an empty app.
   - M1.2 login works in production.
-- **Acceptance criteria:** AC-AUTH-01..06 ([ACCEPTANCE_CRITERIA.md](../quality/ACCEPTANCE_CRITERIA.md)).
+- **Acceptance criteria:** the Stage 1 set in [ACCEPTANCE_CRITERIA.md](../quality/ACCEPTANCE_CRITERIA.md) §Stage mapping.
 - **Tests:**
   - OAuth state tests.
   - Session tests.
@@ -101,7 +101,7 @@
 - **Hours:** 15–20.
 - **Milestones:**
   - M2.1 dashboard shows real data for the developer's own character.
-- **Acceptance criteria:** AC-CHAR-01..07 and AC-GOAL-01..03.
+- **Acceptance criteria:** the Stage 2 set in ACCEPTANCE_CRITERIA §Stage mapping.
 - **Tests:**
   - Contract tests on Blizzard fixtures.
   - 404 and partial-failure handling.
@@ -111,14 +111,14 @@
 
 ### Stage 3: Coaching engine
 - **Goal:** deterministic findings from real reports.
-- **Dependencies:** Gates 1 and 2 PASS; calibration files exist for AR-01 and AR-03.
+- **Dependencies:** Gates 1, 2 and 4 PASS; WCL written approval; calibration files exist for AR-01, AR-03 and AR-04.
 - **Deliverables:**
   - WCL adapter with pagination, points accounting and bounds.
   - Import API with idempotency.
   - Job runner.
   - Contracts and normalizer.
   - Metrics: `boss_cd_uses`, `boss_cd_opportunities`, `boss_debuff_uptime`, `interrupt_summary`, `death_review`, `lethal_poisons_at_pull`.
-  - Rules: AR-01, AR-03/04, AR-09, AR-10 and AR-14, at their qualified kinds.
+  - Rules: AR-01, AR-03, AR-04, AR-09, AR-10 and AR-14, at their qualified kinds.
   - Prioritizer.
   - Explanation templates.
   - Game-data version `gd-12.1.5-r1`; rule set `assa-12.1-r1`.
@@ -127,7 +127,7 @@
 - **Milestones:**
   - M3.1 the first fixture produces findings identical to the hand computation.
   - M3.2 three real reports from different players pass the cross-check.
-- **Acceptance criteria:** AC-IMP-*, AC-MET-*, AC-COACH-*.
+- **Acceptance criteria:** the Stage 3 set in ACCEPTANCE_CRITERIA §Stage mapping.
 - **Tests:**
   - Golden fixtures.
   - Property tests.
@@ -151,12 +151,12 @@
   - History trends.
   - Onboarding copy.
   - Privacy page.
-  - "This looks wrong" feedback.
+  - "This looks wrong" feedback (wrong / unclear / helpful).
   - Accessibility pass.
 - **Hours:** 15–20.
 - **Milestones:**
   - M4.1 a new user completes the loop without help (hallway test, n=3).
-- **Acceptance criteria:** AC-EXPL-*, AC-PROG-*, AC-PRIV-*, AC-PERF-01.
+- **Acceptance criteria:** the Stage 4 set in ACCEPTANCE_CRITERIA §Stage mapping.
 - **Tests:**
   - Playwright E2E for the critical flow.
   - axe accessibility checks.
@@ -180,9 +180,9 @@
   - M5.1 50 analyses reviewed.
   - M5.2 security review closed.
 - **Acceptance criteria:**
+  - The Stage 5 set in ACCEPTANCE_CRITERIA §Stage mapping.
   - Incorrect findings < 5 per 100, with each one root-caused.
   - No high or critical security issues open.
-  - AC-FAIL-* pass.
 - **Tests:**
   - Manual review protocol.
   - Chaos tests (WCL timeout, 429, malformed events).

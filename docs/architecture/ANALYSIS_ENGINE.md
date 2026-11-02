@@ -52,10 +52,10 @@ These events are **never written to the database** (D-006).
 | metric_id | Definition | Inputs | Notes |
 |---|---|---|---|
 | `boss_cd_uses.v1` | For each boss pull and ability in {Deathmark, Kingsbane}: the count of player casts within `[pull.start, pull.end]` | CastEvent, PullContext | Integer |
-| `boss_cd_opportunities.v1` | `1 + floor((alive_ms_in_pull − grace_ms) / cd_ms)`, with a floor of 0. `cd_ms` comes from game data. `grace_ms` (opener setup allowance) comes from rule data | game data, PlayerContext.death_intervals | The formula is a **model**, documented in the finding's limitations |
-| `boss_debuff_uptime.v1` | The union of intervals where the player's aura X is on any boss actor, divided by the player's alive time in the pull | AuraEvent, PullContext | Unpaired apply/remove pairs are closed at pull end and counted as an anomaly. If anomalies exceed tolerance, the metric is `invalid` |
+| `boss_cd_opportunities.v1` | `1 + floor((alive_ms_in_pull − grace_ms) / cd_ms)`, with a floor of 0. `cd_ms` comes from game data. `grace_ms` (opener setup allowance) comes from the rule's calibration file; there is no default. Pulls with 0 opportunities are `not_applicable` | game data, PlayerContext.death_intervals | The formula is a **model**, documented in the finding's limitations |
+| `boss_debuff_uptime.v1` | The union of intervals where the player's aura X is on any boss actor, divided by the player's alive time in the boss pull. Untargetable time is not removed | AuraEvent, PullContext | Unpaired apply/remove pairs are closed at pull end and counted as an anomaly. If anomalies exceed tolerance, the metric is `invalid` |
 | `interrupt_summary.v1` | Successful interrupts by the player; casts of the interrupt ability | InterruptEvent, CastEvent | Fact |
-| `death_review.v1` | Per death: time, killing ability, total damage taken in the prior 5 s (top 3 abilities), the player's last use of each defensive before the death and whether `now − last_use ≥ cd_ms` | DeathEvent, DamageEvent, CastEvent, game data | Fact |
+| `death_review.v1` | Per death: time, killing ability, total damage taken in the prior `window_ms` (rule data, D-018; top 3 abilities). Defensive last-use and availability are computed only once defensive cooldowns pass T-VER-01 | DeathEvent, DamageEvent, CastEvent, game data | Fact |
 | `lethal_poisons_at_pull.v1` | Whether each lethal poison buff was active at each boss pull start | AuraEvent / combatantinfo | Fact |
 
 Each metric result has the shape `{metric_id, version, scope (run|pull), value, unit, status: ok|invalid|not_applicable, inputs_hash, anomalies[]}`.
@@ -69,11 +69,11 @@ title: Deathmark usage on bosses
 kind: suggestion            # observation | suggestion
 spec_ids: [259]
 hero_trees: [any]
-requires_talents: [deathmark]          # checked against PlayerContext.talents
+requires_talents: [deathmark]          # only if T-VER-01 shows Deathmark is a talent; otherwise omitted
 game_versions: ">=12.1.0,<12.2.0"     # supported window; outside = not evaluated
 requires_metrics: [boss_cd_uses.v1, boss_cd_opportunities.v1]
 requires_coverage: [Casts]
-threshold: {calibration_id: CAL-AR01-S2-001, fire_when: "uses < opportunities AND opportunities - uses >= 1 AND alive_ratio >= 0.9"}
+threshold: {calibration_id: CAL-AR01-S2-001, fire_when: "uses < opportunities AND alive_ratio >= cal.min_alive_ratio"}   # every number (grace_ms, min_alive_ratio, buckets) comes from the CAL file
 priority_rank: 10
 sources: [ROG-02, ROG-03]
 explanation_template: "On {boss} you used Deathmark {uses} time(s); the fight allowed up to {opportunities}. ..."
@@ -96,7 +96,7 @@ Finding
   recommended_action (from rule template; suggestion only)
   validation_next_run (text from rule: what will be compared next time)
 ```
-There is **no numeric "coaching score"** (directive §8.2).
+There is **no numeric "coaching score"** (project directive: no manufactured coaching scores).
 
 ## 7. Prioritization (deterministic)
 The sort key, ascending:
@@ -121,8 +121,9 @@ The improvement plan takes the first ≤3 `suggestion` findings, de-duplicated b
 | Archived report | `archiveStatus.isAccessible=false` | Stop | "WCL has archived this report" |
 | No M+ fights | No `keystoneLevel` | Stop | "No Mythic+ runs in this report" |
 | Character not in report | Actor match fails | Stop | List of characters found (names only) |
-| Unsupported spec | `spec_id ≠ 259` | Stop | "Only Assassination is supported" |
-| Game version outside rule windows | detected version vs rule `game_versions` | Rules not evaluated | "This key was played on patch X; our rules support Y" |
+| Unsupported spec | `spec_id` ≠ Assassination's ID (259, to be confirmed in T-VER-01) | Stop | "Only Assassination is supported" |
+| Game version outside every rule set's window | detected version vs rule-set windows | **Reject the import** (`unsupported_game_version`); no analysis | "This key was played on patch X; we currently support Y" |
+| Game version inside the rule set but outside one rule's window | rule `game_versions` | That rule → insufficient evidence | Per-rule reason |
 | Partial data (a dataType missing or empty) | Coverage | Dependent rules → insufficient evidence | Per-rule reason |
 | Inconsistent data (unpaired auras, events outside pull bounds, non-monotonic timestamps) | Anomaly counters | Metric `invalid` beyond tolerance | "Data quality too low to judge X" |
 | Unrecognized spell IDs | Not in game data | Ignored for rules; counted | Limitation note if relevant |
@@ -136,7 +137,7 @@ The improvement plan takes the first ≤3 `suggestion` findings, de-duplicated b
 - **`game_version`** of a run is detected from report metadata (`masterData.gameVersion`/`logVersion`; mapping UNVERIFIED) **and** cross-checked against a patch calendar (`gamedata/patches.yaml`: version → regional start dates). On disagreement the run is marked `version_uncertain` and rules requiring an exact window are skipped.
 - **`game_data_version`**: an immutable, dated snapshot of spell, cooldown and encounter tables (e.g. `gd-12.1.5-r1`). Changes create a new version; old ones are kept.
 - **`rule_set_version`**: the set of rule versions active for a spec (e.g. `assa-12.1-r1`). Every analysis records it.
-- **Historical interpretability:** stored findings are never recomputed in place. Re-analysis with a newer rule set creates a **new analysis record** and marks the older one superseded, with both kept. Trends join values only within the same `metric_id@version`.
+- **Historical interpretability:** stored findings are never recomputed in place. Re-analysis with a newer rule set creates a **new analysis record** and marks the older one superseded, with both kept. Trends are per rule and join values only within the same `rule_id@rule_version`, which pins its metric versions.
 - **Patch/season process:**
   1. On a patch announcement, the maintainer reviews the patch notes for rule-affecting changes (checklist in CLAUDE.md).
   2. Affected rules either receive a new version with an updated window, or their window closes. They are then not evaluated for new keys until revalidated, and the UI says so.
@@ -145,7 +146,7 @@ The improvement plan takes the first ≤3 `suggestion` findings, de-duplicated b
 
 ## 10. Calibration (offline)
 - **Purpose:** produce thresholds and magnitude buckets without inventing them.
-- **Dataset:** public WCL reports of Assassination Rogues in the same season and patch window, split by hero tree and boss encounter, with keys in the target band (initially +8 to +14). **Target n ≥ 30 per (boss × hero tree)**; cells below that are merged across bosses only if the distributions don't differ (documented).
+- **Dataset:** public WCL reports of Assassination Rogues in the same season and patch window, A **calibration cell** is (boss encounter × hero tree × key band). The key band is chosen when the cohort is pulled, based on how many logs exist, and recorded in the CAL file; it is a sampling choice, not a coaching threshold. **Target n ≥ 30 per cell**; cells below that are merged across bosses only if the distributions don't differ (documented).
 - **Output:** `calibration/CAL-*.json` with the dataset manifest (report codes are stored in a private, non-committed manifest if the Terms require it), metric distributions, chosen thresholds, the rationale and the reviewer.
 - Calibration consumes WCL points; it runs on the project's API key outside peak hours and is subject to the WCL Terms (Gate 3).
 - **Acceptance:** the threshold flags ≤ 20% of the calibration cohort, and a manual review of 20 flagged cases finds ≥ 80% where an experienced player agrees the finding is reasonable. If this is not met, the rule stays `observation`.

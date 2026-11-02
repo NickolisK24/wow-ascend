@@ -12,7 +12,7 @@
 - **The original value proposition is crowded.** At least four products already do AI-written, personalized post-run coaching from WCL logs, and one has Battle.net login and paid tiers. WoWAnalyzer already does deterministic per-spec analysis, though its Assassination module lags patch 12.1.
 - **The business model is constrained.** Blizzard's API terms, as quoted in forums, prohibit charging for features that use API data. WCL requires prior approval for commercial use and appears to limit caching.
 
-**Recommendation:** do **not** proceed as originally proposed (a commercial coaching platform). **Proceed conditionally** with a free, narrow validation beta, the "Key Review" for Assassination Rogue, differentiated by deterministic, cited findings and a goal → fix → re-measure loop. Build the coaching engine only **after** live data tests, calibration and user interviews pass Gates 1, 2 and 4, and after the provider terms are read and WCL approves (Gate 3).
+**Recommendation:** do **not** proceed as originally proposed (a commercial coaching platform). **Proceed conditionally** with a free, narrow validation beta, the "Key Review" for Assassination Rogue, differentiated by deterministic, cited findings and a goal → fix → re-measure loop. Build the coaching engine only after Gates 1, 2 and 4 are PASS and WCL has approved the processing in writing. The public beta needs all five gates PASS.
 
 ## 2. Product problem
 Players have data and generic AI explanations, but no **trustworthy, prioritized answer tied to their own goal, with follow-up measurement**. This is a hypothesis; see [PRODUCT_REQUIREMENTS.md](product/PRODUCT_REQUIREMENTS.md) §1.
@@ -30,13 +30,13 @@ Assassination Rogues in Midnight Season 2 Mythic+, rated about 1,500–3,000, wh
 
 See [COMPETITIVE_LANDSCAPE.md](research/COMPETITIVE_LANDSCAPE.md).
 
-## 5. Verified research findings (as of 2026-11-02; evidence level shown)
+## 5. Research findings (documentary; none live-verified; evidence level shown)
 | Finding | Evidence |
 |---|---|
 | Live: Midnight, patch 12.1.5 (2026-10-13). Season 2 since 2026-08-18. 12.2 and Season 3 announced for "winter" | Multiple press sources (SS) |
 | Season 2 M+ pool: Altar of Fangs, Murder Row, Den of Nalorakk, The Blinding Vale, Voidscar Arena, King's Rest, Temple of Sethraliss, Ruby Life Pools | SS, High |
 | From +12, each death costs 15 s (Xal'atath's Guile) | SS, High |
-| Addons can no longer read combat-log events (secret values). The file log is reportedly unchanged | SS; Hazzikostas quote secondhand |
+| Addons can no longer read combat-log events (secret values). The file log is reportedly unchanged | SS; Medium-High (secondhand quote of the game director, plus WoWAnalyzer support for 12.1.0); no first-hand Blizzard or WCL statement read |
 | WCL v2 schema has `ReportFight.keystone*`, `dungeonPulls`, `events(dataType…)` with pagination, `rateLimitData` | **DR** (schema dump, July 2026) |
 | WoWAnalyzer supports patches through 12.1.0; its Assassination module is "MaintainedPartial", targeting 12.0.0 | **DR** (repo, 2026-11-02) |
 | Blizzard: client-credentials token covers public profiles; `wow.profile` covers the account character list; tokens must be in the header since 2024-09-30; no refresh tokens historically | DR (SDK code) + SS |
@@ -76,7 +76,7 @@ Details: [WOW_RETAIL_FOUNDATIONS.md](research/WOW_RETAIL_FOUNDATIONS.md), [BLIZZ
 4. Set a goal.
 5. Paste a public or unlisted WCL key link.
 6. Boss-level findings:
-   - **Suggestions:** AR-01 (Deathmark usage) and AR-03/04 (Rupture/Garrote uptime), once calibrated.
+   - **Suggestions (only once calibrated):** AR-01 (Deathmark usage), AR-03 (Rupture uptime) and AR-04 (Garrote uptime).
    - **Observations:** AR-10 (death review), AR-09 (interrupts) and AR-14 (poisons).
 7. A plan of at most 3 items.
 8. Per-rule history.
@@ -108,16 +108,16 @@ Deterministic analyses, golden fixtures from real sanitized reports, a cross-che
 ## 13. Feasibility gate outcomes
 | Gate | Status | Evidence | What changes the status |
 |---|---|---|---|
-| **1. Data feasibility** | **BLOCKED** | Schema and docs are favorable (DR), but there are no credentials, no network and no live report | T-BN-01..06 and T-WCL-01..06 pass on a real Midnight M+ report |
-| **2. Coaching feasibility** | **NOT YET TESTED** | 14 candidate rules designed. Only 2 are coaching suggestions plus 3 factual observations; nothing is calibrated or validated | T-CALC-01 and T-CAL-01 qualify ≥3 meaningful insights, including ≥2 calibrated suggestions |
+| **1. Data feasibility** | **BLOCKED** | Schema and docs are favorable (DR), but there are no credentials, no network and no live report | The Gate 1 tests listed in FEASIBILITY_TEST_PLAN §3 pass on a real Midnight M+ report |
+| **2. Coaching feasibility** | **NOT YET TESTED** | 14 candidate rules designed. 3 are suggestion candidates (AR-01, AR-03, AR-04) and 3 are factual observations; nothing is calibrated or validated | The criterion in FEASIBILITY_TEST_PLAN §3: ≥3 insights qualify, of which ≥2 are calibrated suggestions |
 | **3. Compliance** | **BLOCKED** | Blizzard §2B monetization restriction (as quoted); WCL commercial approval and caching limits; the terms haven't been read in full; "WoW" trademark risk | Terms read; WCL written approval; name change. *Note: a free, non-commercial beta may be compliant, but that is unconfirmed.* |
 | **4. Product differentiation** | **NOT YET TESTED** | Research shows the generic concept is already covered; the narrow differentiators are hypotheses | Interview synthesis meets the criteria in COMPETITIVE_LANDSCAPE §5.4 |
-| **5. Delivery feasibility** | **NOT YET TESTED** | Estimate: 130–175 h, about 9–11 weeks at 15–20 h/week, versus the 6–8 week target; about $8/mo infrastructure | Stage 0 completes within ~2 weeks, and the Stage 1–2 actual hours stay within 25% of the estimate |
+| **5. Delivery feasibility** | **NOT YET TESTED** | Estimate: 140–190 h, about 10–12 weeks at 15–20 h/week, versus the 6–8 week target; about $8/mo infrastructure | Stage 0 completes within ~3 weeks, and the Stage 1–2 actual hours stay within 25% of the estimate |
 
 **No gate has passed.**
 
 ## 14. Development roadmap
-Stage 0 (feasibility) → Stage 1 (foundation) → Stage 2 (character) → **gate check** → Stage 3 (engine) → Stage 4 (UX) → Stage 5 (validation) → Stage 6 (beta). Realistic total is **9–11 weeks**. Season 3 timing is a decision point. See [ROADMAP.md](planning/ROADMAP.md).
+Stage 0 (feasibility) → Stage 1 (foundation) → Stage 2 (character) → **gate check** → Stage 3 (engine) → Stage 4 (UX) → Stage 5 (validation) → Stage 6 (beta). Realistic total is **10–12 weeks**. Season 3 timing is a decision point. See [ROADMAP.md](planning/ROADMAP.md).
 
 ## 15. Launch criteria (public beta)
 1. All five gates PASS.
@@ -141,7 +141,7 @@ See [MVP_SPECIFICATION.md](product/MVP_SPECIFICATION.md) §4. In short:
 - Private WCL reports and avoidable-damage analysis (post-MVP).
 
 ## 17. Next recommended engineering task
-**Run the Stage 0 data probes** (T-BN-01..06, T-WCL-01..06) from a network that can reach Blizzard and WCL, using real credentials and one permitted Midnight Season 2 key containing an Assassination Rogue. Then hand-compute AR-01 and AR-03 on that report and compare the results with WCL's own tables (T-CALC-01). The scripts are ready: [`research/proofs-of-concept/`](../research/proofs-of-concept/). In parallel, the project lead reads both providers' terms and sends the WCL approval email.
+**Run the Stage 0 data probes** (T-BN-01..06, T-WCL-01..06) from a network that can reach Blizzard and WCL, using real credentials and one permitted Midnight Season 2 key containing an Assassination Rogue. Then run the hand-computation check T-CALC-01 (rule list in the test plan) on that report and compare the results with WCL's own tables. The scripts are ready: [`research/proofs-of-concept/`](../research/proofs-of-concept/). In parallel, the project lead reads both providers' terms and sends the WCL approval email.
 
 ---
 **Document index:**

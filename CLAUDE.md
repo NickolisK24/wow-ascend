@@ -7,7 +7,8 @@ Help Mythic+ players improve through **accurate, checkable, evidence-backed find
 
 ## 2. Current phase and gates
 - The project is in **Stage 0 (feasibility)**. Check the gate table in BASELINE §13 before starting any stage.
-- **Do not build the coaching engine (Stage 3) until Gates 1 and 2 are PASS** in BASELINE.md, with linked evidence.
+- **Stage 3 (coaching engine) may start only when Gates 1, 2 and 4 are PASS and Warcraft Logs has confirmed in writing that the processing is permitted (the WCL half of Gate 3).** Public beta requires all five gates PASS. Stages 1–2 may start once the compliance memo (T-LEGAL-01) concludes Blizzard API use is permitted for a free, non-commercial product.
+- Stage 0 *may* contain throwaway research scripts (probes, a calibration prototype computing AR-01/03/04 metrics). They live in `research/`, are not production code, and must not be imported by the app.
 - Never mark a gate PASS without evidence the user can inspect: a test output, a fixture, or a written provider reply.
 
 ## 3. Accepted architecture (see docs/planning/DECISION_LOG.md)

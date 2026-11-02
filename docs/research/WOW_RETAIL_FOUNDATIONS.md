@@ -137,7 +137,7 @@ Blizzard article *"Combat Philosophy and Addon Disarmament in Midnight"* (`WOW-1
 | 12.1.5 | Damage-meter `sourceGUID` becomes secret when unit identity is secret | Medium | `WOW-21` |
 | Built-in replacements | Server-side **damage meter** (incl. avoidable damage), encounter warnings/timeline, expanded Cooldown Manager | High | `WOW-22` |
 | Addons | WeakAuras ended Midnight support; DBM/BigWigs continue in reduced form; rotation helpers/interrupt automation blocked | High | `WOW-22`, `WOW-23` |
-| **Combat log file** (`WoWCombatLog.txt`, Advanced Combat Logging) | **Appears unaffected** — restrictions target in-game Lua, not file output; Warcraft Logs uploads continue (Archon app launched with Midnight) | **Medium** — no first-party Blizzard or WCL statement found | `WOW-24`, `WOW-25` |
+| **Combat log file** (`WoWCombatLog.txt`, Advanced Combat Logging) | **Appears unaffected** — restrictions target in-game Lua, not file output; Warcraft Logs uploads continue (Archon app launched with Midnight) | **Medium-High** — secondhand quote of the game director plus WoWAnalyzer 12.1.0 support; no first-hand Blizzard or WCL statement read | `WOW-24`, `WOW-25`, `WCL-10` |
 
 **The five surfaces the directive asks us to separate:**
 1. **In-game addon information** — heavily restricted (secret values). Ascend uses **no addon**; this restriction does not directly limit Ascend, but it eliminates addon-based data collection as an option.

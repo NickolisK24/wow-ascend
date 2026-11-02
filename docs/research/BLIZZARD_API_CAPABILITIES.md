@@ -75,7 +75,7 @@ Missing values: `guild` optional; characters below some level threshold or inact
 ## 5. Rate limits and errors
 - **36,000 requests/hour and 100 requests/second per client** — long-cited, secondary sources only (Med, `BNET-13`).
 - HTTP **429** when throttled; forum reports of 429s at ~5 rps due to per-node throttles (Med, `BNET-14`). `Retry-After` header UNVERIFIED → bounded exponential backoff with jitter.
-- Expected Ascend load: ~5 profile calls per character refresh. 500 active users × 3 characters × 1 refresh/day ≈ 7,500 calls/day — **far below** quota.
+- Expected Ascend load: ~5 profile calls per character refresh. 500 active users × 2 characters × 1 refresh/day ≈ 5,000 calls/day — **far below** quota.
 
 ## 6. Terms of use (summarized; full text NOT read — see compliance doc)
 | Topic | Finding | Conf | Src |

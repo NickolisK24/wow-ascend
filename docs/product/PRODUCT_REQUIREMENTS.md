@@ -33,15 +33,15 @@ Differentiators to test:
 | ID | Requirement | Priority | Gate dependency |
 |---|---|---|---|
 | FR-01 | Sign in with Battle.net (OAuth authorization code); no password handling | MVP | G3 |
-| FR-02 | List the account's WoW Retail characters; let the user select one or more | MVP | G1 (account endpoint fields) |
+| FR-02 | List the account's WoW Retail characters; let the user add one or more (one at a time) | MVP | G1 (account endpoint fields) |
 | FR-03 | Character dashboard: name, realm, class/spec, level, item level, equipped items with enchant/gem presence, current M+ rating, season best runs per dungeon, data freshness | MVP | G1 |
 | FR-04 | Set one progression goal per character: a target M+ rating, or a target key level timed in a named or any dungeon | MVP | – |
-| FR-05 | Import a Warcraft Logs report by URL (public and, if verified, unlisted); select the key run; auto-detect the user's character in the report | MVP | G1, G3 |
+| FR-05 | Import a Warcraft Logs report by URL (public; unlisted only if T-WCL-07 confirms client access); select the key run; auto-detect the user's character in the report | MVP | G1, G3 |
 | FR-06 | Reject reports that don't contain one of the user's characters, aren't M+, are an unsupported spec, or are from an unsupported game version, each with a specific message | MVP | – |
 | FR-07 | Compute verified metrics for the supported rule set; persist derived results only | MVP | G1, G2, G3 |
 | FR-08 | Produce findings (observed fact / suggested improvement / insufficient evidence), each with evidence, confidence, limitations and rule version | MVP | G2 |
 | FR-09 | Improvement plan: the top 1–3 suggested improvements, ordered by a transparent deterministic priority | MVP | G2 |
-| FR-10 | History: per character, the list of analyses and a per-rule trend across analyses ("Deathmark usage on bosses: 2/3 → 3/3") | MVP | – |
+| FR-10 | History: per character, the list of analyses and a per-rule trend across analyses ("Deathmark usage on bosses: 2/3 → 3/3"), split by rule version | MVP | – |
 | FR-11 | Privacy settings: view stored data, delete an analysis, delete a character, delete the account | MVP | G3 |
 | FR-12 | Re-fetch character data on demand (rate-limited) and automatically when stale (>24 h) on visit | MVP | – |
 | FR-13 | Private WCL reports via WCL user OAuth | Post-MVP | G3 |
@@ -59,7 +59,7 @@ Differentiators to test:
 | NFR-04 | No raw provider event data persisted |
 | NFR-05 | All provider calls go through adapters with timeouts, bounded retries and rate limiting |
 | NFR-06 | WCAG 2.2 AA for core flows |
-| NFR-07 | Operable by one developer: one backend service, one worker, one database; deploy in under 10 minutes |
+| NFR-07 | Operable by one developer: one backend service (with in-process job runner), one database; deploy in under 10 minutes |
 | NFR-08 | Monthly infrastructure cost ≤ $25 through the 50-user beta |
 
 ## 7. Success metrics (beta)
@@ -67,7 +67,7 @@ These are measured from Ascend's own data, with no invented baselines:
 - Activation: % of sign-ups who complete one analysis.
 - **Return rate:** % of users who import a second report within 14 days. *Primary signal for H4.*
 - **Finding persistence:** for users with ≥2 analyses, the share of previously flagged findings that are no longer flagged. Interpret cautiously, since it isn't causal.
-- **Reported incorrect findings** per 100 findings, via an in-app "this is wrong" button. Target: < 5, each one reviewed.
+- **Reported incorrect findings** per 100 findings, via the in-app "This looks wrong" control. Target: < 5, each one reviewed.
 - Qualitative: post-beta interviews.
 
 ## 8. Explicit exclusions

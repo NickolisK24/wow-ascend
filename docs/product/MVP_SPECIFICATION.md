@@ -1,6 +1,6 @@
 # MVP Specification: "Key Review" for Assassination Rogue
 
-**Date:** 2026-11-02 · **Status:** Baseline v1. This is conditional: **implementation of the coaching scope (screens 5–7) starts only after Gates 1 and 2 pass.** Screens 1–4 and 8–9 can proceed after Gate 3 clears the Battle.net terms.
+**Date:** 2026-11-02 · **Status:** Baseline v1. This is conditional. Screens S1–S4 and S9 can be built in Stages 1–2, once the compliance memo concludes Blizzard API use is permitted for a free product. Screens S5–S8 depend on the coaching engine, which starts only when Gates 1, 2 and 4 are PASS and WCL has approved the processing in writing.
 
 ## 1. Scope decision versus the original proposal
 
@@ -11,11 +11,11 @@
 | 3. Basic character dashboard | **Keep, minimal** | Raider.IO/WCL already do this well; it is a frame for findings, not the product |
 | 4. M+ progression overview | **Keep, Blizzard data only** | Season best runs and rating come from the API. Full run history is UNSUPPORTED by Blizzard. |
 | 5. User-defined goal | **Keep** | Core of the differentiation hypothesis |
-| 6. Optional WCL import | **Keep; public (and unlisted, if verified) reports only** | Private reports need WCL user OAuth, deferred to post-MVP |
-| 7. Small set of coaching insights | **Keep, 2 coaching rules + 3 factual summaries** | Only AR-01 and AR-03/04 qualify as coaching. See [ASSASSINATION_ROGUE.md](../research/ASSASSINATION_ROGUE.md) §6. |
+| 6. Optional WCL import | **Keep; public reports, plus unlisted reports if T-WCL-07 shows the client API can read them** | Private reports need WCL user OAuth, deferred to post-MVP |
+| 7. Small set of coaching insights | **Keep: up to 3 suggestion rules (AR-01, AR-03, AR-04) + 3 factual observations (AR-09, AR-10, AR-14)** | Only these are defensible; suggestions only once calibrated. See [ASSASSINATION_ROGUE.md](../research/ASSASSINATION_ROGUE.md) §6. |
 | 8. Prioritized action plan | **Keep, max 3 items** | – |
 | 9. Basic improvement history | **Keep: per-rule trend** | Core of the loop |
-| *(new)* "This finding is wrong" feedback | **Add** | Needed to measure false positives |
+| *(new)* "This looks wrong" feedback (verdicts: wrong / unclear / helpful) | **Add** | Needed to measure false positives |
 | *(new)* Free, no-ads beta | **Add** | Blizzard §2B and WCL commercial-approval risk |
 
 **Smallest product worth releasing:** sign in → pick an Assassination Rogue → set a goal → paste a WCL link to a key → see up to 3 boss-level findings with checkable evidence → import the next key and see whether those findings changed.
@@ -68,7 +68,7 @@ Wording rules: never "you should have" about a specific moment unless the rule e
   - Denying consent creates no account row.
 
 ### S3 Character selection
-- **Purpose:** choose a character.
+- **Purpose:** add one or more characters, one at a time.
 - **Data:** account character list (`/profile/user/wow`), cached for this session only.
 - **Components:**
   - list grouped by realm;
@@ -124,14 +124,14 @@ Wording rules: never "you should have" about a specific moment unless the rule e
   - no M+ fights;
   - character not in report;
   - not Assassination;
-  - game version not supported by the current rule set;
+  - game version not supported by any rule set (`unsupported_game_version`; the import is rejected and no analysis is created);
   - WCL rate limit (queued; "we'll finish shortly");
   - WCL down;
   - duplicate (link to the existing analysis).
 - **Mobile:** works with a pasted URL.
 - **Acceptance criteria:**
   - The same report and key imported twice yields one analysis (idempotent).
-  - Unsupported input makes no further WCL calls after detection.
+  - Unsupported input makes no further WCL calls after detection (AC-IMP-08).
   - No raw events are persisted.
 
 ### S6 Post-run analysis
