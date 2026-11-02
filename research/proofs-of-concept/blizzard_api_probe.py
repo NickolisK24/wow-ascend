@@ -45,10 +45,20 @@ def client_token(env: dict[str, str]) -> str:
     return body["access_token"]
 
 
-def api(region: str, path: str, namespace: str, token: str) -> tuple[int, dict, object]:
+def api(region: str, path: str, namespace: str, token: str, *, ns_in_query: bool = False) -> tuple[int, dict, object]:
+    """Token always in the Authorization header (query-string tokens rejected since 2024-09-30).
+
+    Namespace goes in the `Battlenet-Namespace` header (documented by current SDKs);
+    `ns_in_query=True` tests whether the legacy `?namespace=` form still works.
+    """
     sep = "&" if "?" in path else "?"
-    url = f"https://{region}.api.blizzard.com{path}{sep}namespace={namespace}-{region}&locale=en_US"
-    return http("GET", url, headers={"Authorization": f"Bearer {token}"})
+    headers = {"Authorization": f"Bearer {token}"}
+    if ns_in_query:
+        url = f"https://{region}.api.blizzard.com{path}{sep}namespace={namespace}-{region}&locale=en_US"
+    else:
+        url = f"https://{region}.api.blizzard.com{path}{sep}locale=en_US"
+        headers["Battlenet-Namespace"] = f"{namespace}-{region}"
+    return http("GET", url, headers=headers)
 
 
 def probe_public(env: dict[str, str], token: str) -> None:
@@ -102,6 +112,11 @@ def probe_public(env: dict[str, str], token: str) -> None:
             runs = body.get("best_runs", []) if isinstance(body, dict) else []
             report("  season details list best runs only (not full history)", None, f"{len(runs)} runs returned")
 
+    status, _, _ = api(region, "/data/wow/mythic-keystone/dungeon/index", "dynamic", token, ns_in_query=True)
+    report("legacy ?namespace= query form still accepted", status == 200, f"HTTP {status}")
+    status, hdrs, _ = api(region, f"{base}/status", "profile", token)
+    report("profile: character status (30-day validity check)", status == 200, f"HTTP {status}")
+
     # Negative tests: missing-data and unauthorized handling.
     status, _, body = api(region, f"/profile/wow/character/{realm}/zzzznotarealchar", "profile", token)
     report("nonexistent character -> 404 (handled, not crash)", status == 404, f"HTTP {status}")
@@ -112,9 +127,17 @@ def probe_public(env: dict[str, str], token: str) -> None:
 def user_flow(env: dict[str, str]) -> None:
     redirect = require_env("BNET_REDIRECT_URI")["BNET_REDIRECT_URI"]
     state = secrets.token_urlsafe(16)
+    # PKCE support is UNKNOWN (see BLIZZARD_API_CAPABILITIES.md §2). We send a
+    # code_challenge alongside the confidential-client flow; if the exchange with
+    # code_verifier succeeds, PKCE is at least tolerated. Re-test without the
+    # secret to learn whether public-client PKCE is supported.
+    import base64, hashlib
+    verifier = secrets.token_urlsafe(48)
+    challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
     q = urllib.parse.urlencode({
         "client_id": env["BNET_CLIENT_ID"], "response_type": "code", "redirect_uri": redirect,
         "scope": "openid wow.profile", "state": state,
+        "code_challenge": challenge, "code_challenge_method": "S256",
     })
     print(f"Open in a browser and authorize:\n  {OAUTH_HOST}/authorize?{q}\n")
     code = input("Paste the `code` query parameter from the redirect: ").strip()
@@ -125,7 +148,7 @@ def user_flow(env: dict[str, str]) -> None:
         headers={"Authorization": basic_auth(env["BNET_CLIENT_ID"], env["BNET_CLIENT_SECRET"]),
                  "Content-Type": "application/x-www-form-urlencoded"},
         data=urllib.parse.urlencode({"grant_type": "authorization_code", "code": code,
-                                     "redirect_uri": redirect}).encode(),
+                                     "redirect_uri": redirect, "code_verifier": verifier}).encode(),
     )
     report("authorization-code exchange", status == 200, f"HTTP {status}")
     if status != 200:
