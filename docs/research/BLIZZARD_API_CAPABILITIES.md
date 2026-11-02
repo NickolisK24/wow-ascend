@@ -50,7 +50,7 @@ Paths verified as present in maintained SDK code (High); fields per SDK types (M
 | Specialization, talents, **hero talents** | `…/specializations` | client creds | `active_specialization, active_hero_talent_tree, specializations[]{loadouts[]{is_active, talent_loadout_code, selected_class_talents, selected_spec_talents, selected_hero_talents, …}}` | Talents unsorted; unreachable nodes omitted; reflects **current** loadout only | Display only; analysis uses the **log's** talents | **SUPPORTED** (hero: Med-High) |
 | Mythic+ rating | `…/mythic-keystone-profile` + `/season/{id}` | client creds | `current_period, seasons`; season: `mythic_rating{rating,color}, best_runs[]{completed_timestamp, dungeon, duration, is_completed_within_time, keystone_level, keystone_affixes, members[], mythic_rating}` | `current_mythic_rating` ≠ sum of run ratings | M+ overview, goal progress | **SUPPORTED** |
 | Seasonal best runs | as above | client creds | `best_runs[]` | Overtime runs listed separately? UNVERIFIED | Progress | **SUPPORTED** |
-| **Full M+ run history** | – | – | Only season bests are exposed; full history exists only in-game (`C_MythicPlus.GetRunHistory`, addon-only) | – | Would power "runs this week" | **UNSUPPORTED** |
+| **Full M+ run history** | – | – | Only season bests are exposed; full history exists only in-game (`C_MythicPlus.GetRunHistory`, addon-only; `BNET-11`) | – | Would power "runs this week" | **UNSUPPORTED** |
 | Statistics, media, achievements, encounters, professions, etc. | `…/statistics`, `…/character-media`, … | client creds | not extracted | – | Avatar (media) only | SUPPORTED (paths) |
 
 Missing values: `guild` optional; characters below some level threshold or inactive since 8.2 may 404 (level threshold UNVERIFIED); new document types require a fresh logout (`BNET-08`, `BNET-09`).
@@ -62,7 +62,7 @@ Missing values: `guild` optional; characters below some level threshold or inact
 | M+ dungeons | `/data/wow/mythic-keystone/dungeon/index`, `/{id}` (`keystone_upgrades`, `is_tracked`) | **SUPPORTED** | Season pool via season/period data |
 | M+ periods (weeks) | `/data/wow/mythic-keystone/period/{id}` | SUPPORTED | **No affix list on periods** |
 | M+ seasons | `/data/wow/mythic-keystone/season/{id}` (`start/end_timestamp, periods, season_name`) | SUPPORTED | Season boundaries for versioning |
-| Weekly affixes | `/data/wow/keystone-affix/*` gives names/descriptions only; current week's affixes inferable from leaderboard `keystone_affixes{starting_level}` (inference) | **PARTIAL** | |
+| Weekly affixes | `/data/wow/keystone-affix/*` gives names/descriptions only; current week's affixes inferable from leaderboard `keystone_affixes{starting_level}` (inference) | **PARTIAL** | `BNET-12` |
 | M+ leaderboards | `/data/wow/connected-realm/{id}/mythic-leaderboard/{dungeonId}/period/{periodId}` | SUPPORTED | `leading_groups` may be missing |
 | Items / item media | `/data/wow/item/{id}`, `/media/item/{id}` | SUPPORTED | |
 | Spells / spell media | `/data/wow/spell/{id}`, `/media/spell/{id}` | SUPPORTED | Name/description/icon; **does not reliably give cooldowns** (UNVERIFIED) — cooldowns for rules must come from verified game data or log observation |

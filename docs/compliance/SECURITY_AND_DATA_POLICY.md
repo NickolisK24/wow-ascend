@@ -38,7 +38,7 @@
 |---|---|---|---|---|
 | **Identity** | Battle.net account id (`sub`), BattleTag | **High (PII)** | Yes | Encrypted at rest (provider). BattleTag shown only to its owner. Hashed id used in logs. |
 | **Session** | Ascend session token | **High** | Server-side hash only | HttpOnly, Secure, SameSite=Lax cookie. Rotated on login. 14-day idle expiry. |
-| **Provider tokens** | Battle.net user access token; WCL user token | **Critical** | **Battle.net: never persisted** (used at login, then discarded). WCL user token: in memory for the import request only in the MVP; if stored later, encrypted with an app key (AES-GCM) and scoped per user | Never logged |
+| **Provider tokens** | Battle.net user access token; WCL user token | **Critical** | **Battle.net: never persisted** (used at login, then discarded). WCL user OAuth: **not used in the MVP** (D-012). If it's added later, hold the token in memory for the request, or, if it must be stored, encrypt it with an app key (AES-GCM), scope it per user, and record a DECISION_LOG entry | Never logged |
 | **App credentials** | Blizzard / WCL client secrets, DB URL, session key | **Critical** | Host environment secrets only | Never in git (`.gitignore`, secret scanning). Rotated on suspicion. |
 | **Public character data** | Name, realm, class, gear, rating | Medium (public, but tied to an identity) | Yes, with a 30-day validity check | Owner-scoped access |
 | **Private report data** | Events from private or unlisted WCL reports | **High** (third-party content) | **Raw: never.** Derived: pending W2 | Owner-scoped. Purged when the user deletes it. |
