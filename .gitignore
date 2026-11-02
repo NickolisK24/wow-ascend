@@ -1,0 +1,10 @@
+# Secrets
+.env
+.env.*
+!.env.example
+# Raw provider responses may contain identifying data; only sanitized fixtures are committed
+research/fixtures/raw/
+__pycache__/
+*.pyc
+.venv/
+node_modules/
